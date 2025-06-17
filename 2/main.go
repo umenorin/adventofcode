@@ -10,50 +10,68 @@ import (
 type Rectangle struct {
 	Width  int
 	Height int
-	Lenght int
+	Length int
 }
 
 func (r *Rectangle) Area() int {
-	return 2*r.Height*r.Lenght + 2*r.Lenght*r.Width + 2*r.Width*r.Height
+	return 2*r.Height*r.Length + 2*r.Length*r.Width + 2*r.Width*r.Height
 }
 
 func (r *Rectangle) FoundSmallAreaSide() int {
-	s1 := r.Height * r.Width
-	s2 := r.Height * r.Lenght
-	s3 := r.Lenght * r.Width
+	sideArea1 := r.Height * r.Width
+	sideArea2 := r.Height * r.Length
+	sideArea3 := r.Length * r.Width
 
-	return min(s1, s2, s3)
+	return min(sideArea1, sideArea2, sideArea3)
 }
 
 func (r *Rectangle) TotalAreaNeeded() int {
 	return r.Area() + r.FoundSmallAreaSide()
 }
 
-func getRectanglesByFile(uri string) []Rectangle {
-	rectangles := []Rectangle{}
+func getRectanglesByFile(filePath string) []Rectangle {
+	allRectangles := []Rectangle{}
 
-	urlsBytes, _ := os.ReadFile(uri)
-	for line := range strings.SplitSeq(string(urlsBytes), "\n") {
+	fileContent, _ := os.ReadFile(filePath)
+	for line := range strings.SplitSeq(string(fileContent), "\n") {
 		if len(line) > 0 {
-			rectangle := strings.Split(line, "x")
+			dimensions := strings.Split(line, "x")
 
-			lenghtR, _ := strconv.Atoi(rectangle[0])
-			widthR, _ := strconv.Atoi(rectangle[1])
-			heightR, _ := strconv.Atoi(rectangle[2])
-			rectangles = append(rectangles, Rectangle{Lenght: lenghtR, Width: widthR, Height: heightR})
-
+			length, _ := strconv.Atoi(dimensions[0])
+			width, _ := strconv.Atoi(dimensions[1])
+			height, _ := strconv.Atoi(dimensions[2])
+			allRectangles = append(allRectangles, Rectangle{Length: length, Width: width, Height: height})
 		}
 	}
-	return rectangles
+	return allRectangles
 }
+
+func (r *Rectangle) SmallestPerimeterOfFace() int{
+	perimeterHeightWidth := 2*r.Height + 2*r.Width
+	perimeterHeightLength := 2*r.Height + 2*r.Length
+	perimeterLengthWidth := 2*r.Length + 2*r.Width
+
+	return min(perimeterHeightWidth,perimeterHeightLength,perimeterLengthWidth)
+}
+
+func (r *Rectangle) GiftVolume() int {
+	return r.Height * r.Width * r.Length
+}
+
+func (r *Rectangle) TotalRibbonLength() int {
+	return r.GiftVolume() + r.SmallestPerimeterOfFace()
+}
+
 
 func main() {
 	rectangles := getRectanglesByFile("./input.txt")
 
-	var areaAllRectangles int
-	for _, rectangle := range rectangles {
-		areaAllRectangles += rectangle.TotalAreaNeeded()
+	var totalWrappingPaperArea int
+	var totalRibbonRequired int
+	for _, rect := range rectangles {
+		totalWrappingPaperArea += rect.TotalAreaNeeded()
+		totalRibbonRequired += rect.TotalRibbonLength()
 	}
-	fmt.Println(rectangles)
-	fmt.Printf("total area of the sum of all rectangles: %d\n", areaAllRectangles)
+	fmt.Printf("Total area of all rectangles: %d\n", totalWrappingPaperArea)
+	fmt.Printf("Total of the ribbon that will be use: %d\n", totalRibbonRequired)
 }
